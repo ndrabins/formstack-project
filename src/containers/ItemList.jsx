@@ -18,6 +18,7 @@ class ItemList extends Component {
   static propTypes = {
     classes: PropTypes.object.isRequired,
     items: PropTypes.array.isRequired,
+    selectedIndex: PropTypes.number.isRequired
   };
 
   state = {
@@ -34,14 +35,26 @@ class ItemList extends Component {
     const { actions } = this.props;
     const { itemName } = this.state;
 
-    actions.createItem(itemName)
+    if( itemName === ""){
+      return;
+    }
 
-    console.log("itemName")
+    actions.createItem(itemName);
     this.setState({ itemName: ""});
   };
 
+  handleDelete = (index) => {
+    const { actions } = this.props;
+    actions.deleteItem(index);
+  }
+
+  handleSelect = (index) => {
+    const { actions } = this.props;
+    actions.selectItem(index);
+  }
+
   render() {
-    const { classes, items } = this.props;
+    const { classes, items, selectedIndex } = this.props;
     const { itemName } = this.state;
 
     return (
@@ -70,6 +83,9 @@ class ItemList extends Component {
                 <Item
                   data={item}
                   key={index}
+                  handleDelete={() => this.handleDelete(index)}
+                  handleSelect={() => this.handleSelect(index)}
+                  isSelected = {index === selectedIndex}
                 />
               ))}
           </List>
@@ -111,7 +127,8 @@ const styles = theme => ({
 
 function mapStateToProps(state) {
   return {
-    items: state.items.items
+    items: state.items.items,
+    selectedIndex: state.items.selectedIndex
   };
 }
 
