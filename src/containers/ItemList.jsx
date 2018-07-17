@@ -9,7 +9,11 @@ import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import List from '@material-ui/core/List';
-
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormLabel from '@material-ui/core/FormLabel';
+import SortBy from "lodash/sortBy";
 
 
 import Item from "../components/Item";
@@ -22,7 +26,8 @@ class ItemList extends Component {
   };
 
   state = {
-    itemName: ""
+    itemName: "",
+    sortValue: "name",
   }
 
   handleChange = name => event => {
@@ -31,7 +36,7 @@ class ItemList extends Component {
     });
   };
 
-  handleFieldEnter = () => {
+  handleCreateItem = () => {
     const { actions } = this.props;
     const { itemName } = this.state;
 
@@ -53,9 +58,20 @@ class ItemList extends Component {
     actions.selectItem(index);
   }
 
+  filteredItems = () => {
+    const { items } = this.props;
+    const { sortValue } = this.state;
+
+    if (sortValue === "name"){
+      return SortBy(items, item => item.name)
+    } else {
+      return SortBy(items, item => item.dateCreated)
+    }
+  }
+
   render() {
-    const { classes, items, selectedIndex } = this.props;
-    const { itemName } = this.state;
+    const { classes, selectedIndex } = this.props;
+    const { itemName, sortValue } = this.state;
 
     return (
       <div className={classes.root}>
@@ -71,15 +87,26 @@ class ItemList extends Component {
               margin="normal"
               onKeyPress={ev => {
                 if (ev.key === "Enter" && !ev.shiftKey) {
-                  this.handleFieldEnter();
+                  this.handleCreateItem();
                   ev.preventDefault();
                 }
               }}
             />
-            <Button variant="raised" className={classes.button}> Create Item </Button>
+            <Button variant="raised" onClick={this.handleCreateItem} className={classes.button}> Create Item </Button>
           </div>
+          <FormLabel component="legend">Sort By</FormLabel>
+          <RadioGroup
+              aria-label="Gender"
+              name="sortValue"
+              className={classes.sortGroup}
+              value={sortValue}
+              onChange={this.handleChange('sortValue')}
+            >
+              <FormControlLabel value="name" control={<Radio color="primary" />} label="Name" />
+              <FormControlLabel value="dateCreated" control={<Radio color="primary" />} label="DateCreated" />
+          </RadioGroup>
           <List className={classes.list}>
-            {items.map((item, index) => (
+            {this.filteredItems().map((item, index) => (
                 <Item
                   data={item}
                   key={index}
@@ -110,6 +137,10 @@ const styles = theme => ({
     justifyContent: "center",
     alignItems: "center",
   },
+  sortGroup: {
+    display: "flex",
+    flexDirection: "row",
+  },
   list: {
     width: "100%",
   },
@@ -117,7 +148,7 @@ const styles = theme => ({
     marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit,
     width: 200,
-    marginBottom: theme.spacing.unit*2,
+    marginBottom: theme.spacing.unit*4,
   },
   button: {
     background: "linear-gradient(to right, #29b6f6, #796eff)",
